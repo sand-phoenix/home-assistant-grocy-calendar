@@ -40,10 +40,7 @@ async def _async_set_day_plan(hass: HomeAssistant, data: dict) -> None:
     section_id = next((item["id"] for item in sections if item.get("name") == MEAL_PLAN_SECTION), None)
     if section_id is None:
         section_id = await client.post("objects/meal_plan_sections", {"name": MEAL_PLAN_SECTION, "sort_number": 100})
-    existing = await client.get("objects/meal_plan")
-    for item in existing:
-        if item.get("day") == data["day"] and item.get("section_id") == section_id:
-            await client.delete(f"objects/meal_plan/{item['id']}")
+    recipe_ids: list[int] = []
     if data["meal_type"] == "recipe":
         recipes = {item["name"].casefold(): item["id"] for item in await client.get("objects/recipes")}
         for name in (data["main_dish"], data["side_dish"]):
@@ -52,6 +49,13 @@ async def _async_set_day_plan(hass: HomeAssistant, data: dict) -> None:
             recipe_id = recipes.get(name.casefold())
             if recipe_id is None:
                 raise GrocyApiError(f"Grocy recipe {name!r} was not found")
+            recipe_ids.append(recipe_id)
+    existing = await client.get("objects/meal_plan")
+    for item in existing:
+        if item.get("day") == data["day"] and item.get("section_id") == section_id:
+            await client.delete(f"objects/meal_plan/{item['id']}")
+    if data["meal_type"] == "recipe":
+        for recipe_id in recipe_ids:
             await client.post("objects/meal_plan", {"day": data["day"], "type": "recipe", "recipe_id": recipe_id, "section_id": section_id})
         for duty, assignee in (("Cooking", data["cooking_assignee"]), ("Dishes", data["dishes_assignee"])):
             if assignee:
