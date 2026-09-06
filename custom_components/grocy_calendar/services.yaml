@@ -1,0 +1,36 @@
+set_day_plan:
+  name: Set day plan
+  description: Replace this integration's meal-plan rows for one day.
+  fields:
+    day:
+      required: true
+      selector:
+        date:
+    meal_type:
+      required: true
+      selector:
+        select:
+          options:
+            - recipe
+            - kyo
+            - takeout
+    main_dish:
+      selector:
+        text:
+    side_dish:
+      selector:
+        text:
+    cooking_assignee:
+      selector:
+        select:
+          options:
+            - Kaie
+            - Rio
+            - Rose
+    dishes_assignee:
+      selector:
+        select:
+          options:
+            - Kaie
+            - Rio
+            - Rose
